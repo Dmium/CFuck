@@ -19,8 +19,8 @@ void freeinstr(instr* cinstr){
   free(cinstr);
 }
 
-void compile(instr* cinst){
-  FILE *fp = fopen("btest.asm", "w+");
+void compile(instr* cinst, char* outfile){
+  FILE *fp = fopen(outfile, "w+");
   int nextLabelCount = 0;
   int bMatchCount = 0;
   int bMatchLabel[255];
@@ -50,6 +50,7 @@ void compile(instr* cinst){
         sprintf(temp, "  b%da0:\n  pop ebx\n  mov eax, [ebx]\n  push ebx\n  cmp eax, 0\n  je b%da1\n", bMatchLabel[bMatchCount], bMatchLabel[bMatchCount]);
         fputs(temp, fp);
         bMatchCount++;
+        nextLabelCount++;
         break;
       case ']':
         bMatchCount--;
@@ -57,7 +58,12 @@ void compile(instr* cinst){
         fputs(temp, fp);
         break;
       case '.':
-        fputs("  pop ecx\n  push ecx\n  push ecx\n  pop ecx\n  mov eax, 4\n  mov ebx, 1\n  mov edx, 4\n  int 0x80\n", fp);
+        fputs("  pop ecx\n  push ecx\n  push ecx\n  pop ecx\n  mov eax, 4\n  mov ebx, 1\n  mov edx, 1\n  int 0x80\n", fp);
+        break;
+      case ',':
+        sprintf(temp, "  i%d:\n  pop ecx\n  push ecx\n  push ecx\n  pop ecx\n  mov eax, 3\n  mov ebx, 0\n  mov edx, 1\n  int 0x80\n  mov eax, 10\n  pop ecx\n  push ecx\n  mov ebx, [ecx]\n  cmp eax, ebx\n  je i%d\n", nextLabelCount, nextLabelCount);
+        fputs(temp, fp);
+        nextLabelCount++;
         break;
     }
     cinst = cinst->next;
@@ -69,6 +75,7 @@ void compile(instr* cinst){
 int main(int argc, char *argv[]){
   char c;
   int total = 0;
+  printf("Parsing Input File\n");
   FILE *fp = fopen(argv[1], "r");
   instr* first;
   instr* current;
@@ -87,8 +94,8 @@ int main(int argc, char *argv[]){
     }
   }
   fclose(fp);
-  printf("\n");
-  compile(first);
+  printf("Compiling\n");
+  compile(first, argv[2]);
   freeinstr(first);
-  printf("\n");
+  printf("Complete\n");
 }
