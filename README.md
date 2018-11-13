@@ -11,7 +11,7 @@ Note: Written for Linux. May work on other OSes. Will almost certainly not work 
 # Compiler Usage
 
 1. Compile compile.c (ie: ```gcc -o compile compile.c```)
-2. Run run.sh with format ```run.sh brainfuckfile.bf outputbinary```
+2. Run run.sh with format ```./run.sh brainfuckfile.bf outputbinary```
 3. Test your code with ```./outputbinary```
 
 # Interpreter Requirements
