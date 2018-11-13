@@ -23,6 +23,9 @@ Note: Written for Linux. May work on other OSes. Will almost certainly not work 
 1. Compile interpret.c (ie: ```gcc -o interpret interpret.c``` or ```clang -o interpret interpret.c```)
 2. run interpret on your Brainfuck program (ie: ```./interpret brainfuckfile.bf```)
 
-# TODO
+# A note on optimization
 
-1. Other optimizations
+- I don't intend to optimize the current compile.c further as I feel it would lose
+some of it's charm as it gets further from bf.
+
+- I may make a second compiler that optimizes bf a lot heavier.
