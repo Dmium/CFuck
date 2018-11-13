@@ -10,9 +10,9 @@ Note: Written for Linux. May work on other OSes. Will almost certainly not work 
 
 # Compiler Usage
 
-1. Compile compile.c (ie: 'gcc -o compile compile.c')
-2. Run run.sh with format 'run.sh brainfuckfile.bf outputbinary'
-3. Test your code with './outputbinary'
+1. Compile compile.c (ie: ```gcc -o compile compile.c```)
+2. Run run.sh with format ```run.sh brainfuckfile.bf outputbinary```
+3. Test your code with ```./outputbinary```
 
 # Interpreter Requirements
 
@@ -20,10 +20,11 @@ Note: Written for Linux. May work on other OSes. Will almost certainly not work 
 
 # Interpreter Usage
 
-1. Compile interpret.c (ie: 'gcc -o interpret interpret.c' or 'clang -o interpret interpret.c')
-2. run interpret on your Brainfuck program (ie: './interpret brainfuckfile.bf')
+1. Compile interpret.c (ie: ```gcc -o interpret interpret.c``` or ```clang -o interpret interpret.c```)
+2. run interpret on your Brainfuck program (ie: ```./interpret brainfuckfile.bf```)
 
 # TODO
 
 1. Optimize increment and decrement operations
 2. Other optimizations
+3. Run a second parse to replace push pop with mov
