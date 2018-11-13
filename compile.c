@@ -27,6 +27,7 @@ void compile(instr* cinst, char* outfile){
   char nextLabel[20];
   char temp[500];
   int incCounter = 0;
+  int movCounter = 0;
   fputs("bits 32\nglobal main\nsection .text\nmain:\n  push 0\n  push esp\n", fp);
   while(cinst->next != NULL){
     //fputc(cinst->val, fp);
@@ -49,16 +50,31 @@ void compile(instr* cinst, char* outfile){
         }
         break;
       }
-
     switch (cinst->val) {
       case '>':
-        sprintf(temp, "  pop ebx\n  cmp ebx, esp\n  jne n%d\n  mov eax, 0\n  push eax\n  n%d:\n  sub ebx, 4\n  push ebx\n", nextLabelCount, nextLabelCount);
-        fputs(temp, fp);
-        nextLabelCount++;
+        movCounter++;
         break;
       case '<':
-        fputs("  pop ebx\n  add ebx, 4\n  push ebx\n", fp);
+        movCounter--;
         break;
+      default:
+        if (movCounter > 0){
+          while (movCounter > 0){
+            sprintf(temp, "  pop ebx\n  cmp ebx, esp\n  jne n%d\n  mov eax, 0\n  push eax\n  n%d:\n  sub ebx, 4\n  push ebx\n", nextLabelCount, nextLabelCount);
+            fputs(temp, fp);
+            nextLabelCount++;
+            movCounter--;
+          }
+          movCounter = 0;
+        }else if (movCounter < 0){
+          sprintf(temp, "  pop ebx\n  add ebx, %d\n  push ebx\n", (0 - movCounter) * 4);
+          fputs(temp, fp);
+          movCounter = 0;
+        }
+        break;
+      }
+
+    switch (cinst->val) {
       case '[':
         bMatchLabel[bMatchCount] = nextLabelCount;
         sprintf(temp, "  b%da0:\n  mov ebx, [esp]\n  mov eax, [ebx]\n  cmp eax, 0\n  je b%da1\n", bMatchLabel[bMatchCount], bMatchLabel[bMatchCount]);
@@ -103,13 +119,18 @@ int main(int argc, char *argv[]){
     if(c == '+' || c == '-' || c == '>' || c == '<'
       || c == ',' || c == '.' || c == '[' || c == ']'){
       current->val = c;
-      current->next = malloc(sizeof(instr));
+      current->next = calloc(1, sizeof(instr));
       current->next->prev = current;
       current = current->next;
       total++;
     }
   }
   fclose(fp);
+  current->val = 'x';
+  current->next = calloc(1, sizeof(instr));
+  current->next->prev = current;
+  current = current->next;
+  total++;
   printf("Compiling\n");
   compile(first, argv[2]);
   freeinstr(first);
