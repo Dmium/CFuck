@@ -26,17 +26,31 @@ void compile(instr* cinst, char* outfile){
   int bMatchLabel[255];
   char nextLabel[20];
   char temp[500];
-  fputs("bits 32\nglobal main\nsection .text\nmain:\n  mov eax, 0\n  push eax\n  push esp\n", fp);
+  int incCounter = 0;
+  fputs("bits 32\nglobal main\nsection .text\nmain:\n  push 0\n  push esp\n", fp);
   while(cinst->next != NULL){
     //fputc(cinst->val, fp);
     switch (cinst->val) {
       case '+':
-        fputs("  pop ebx\n  mov eax, [ebx]\n  add eax, 1\n  mov [ebx], eax\n  push ebx\n", fp);
+        incCounter++;
         break;
       case '-':
-        fputs("  pop ebx\n  mov eax, [ebx]\n  sub eax, 1\n  mov [ebx], eax\n  push ebx\n", fp);
-        //fputs("  pop ebx\n  cmp ebx, esp\n  jne  mov eax, [ebx]\n  sub eax, 1\n  mov [ebx], eax\n  push ebx\n", fp);
+        incCounter--;
         break;
+      default:
+        if (incCounter > 0){
+          sprintf(temp, "  mov ebx, [esp]\n  mov eax, [ebx]\n  add eax, %d\n  mov [ebx], eax\n", incCounter);
+          fputs(temp, fp);
+          incCounter = 0;
+        }else if (incCounter < 0){
+          sprintf(temp, "  mov ebx, [esp]\n  mov eax, [ebx]\n  sub eax, %d\n  mov [ebx], eax\n", 0 - incCounter);
+          fputs(temp, fp);
+          incCounter = 0;
+        }
+        break;
+      }
+
+    switch (cinst->val) {
       case '>':
         sprintf(temp, "  pop ebx\n  cmp ebx, esp\n  jne n%d\n  mov eax, 0\n  push eax\n  n%d:\n  sub ebx, 4\n  push ebx\n", nextLabelCount, nextLabelCount);
         fputs(temp, fp);
@@ -47,23 +61,25 @@ void compile(instr* cinst, char* outfile){
         break;
       case '[':
         bMatchLabel[bMatchCount] = nextLabelCount;
-        sprintf(temp, "  b%da0:\n  pop ebx\n  mov eax, [ebx]\n  push ebx\n  cmp eax, 0\n  je b%da1\n", bMatchLabel[bMatchCount], bMatchLabel[bMatchCount]);
+        sprintf(temp, "  b%da0:\n  mov ebx, [esp]\n  mov eax, [ebx]\n  cmp eax, 0\n  je b%da1\n", bMatchLabel[bMatchCount], bMatchLabel[bMatchCount]);
         fputs(temp, fp);
         bMatchCount++;
         nextLabelCount++;
         break;
       case ']':
         bMatchCount--;
-        sprintf(temp, "  b%da1:\n  pop ebx\n  mov eax, [ebx]\n  push ebx\n  cmp eax, 0\n  jne b%da0\n", bMatchLabel[bMatchCount], bMatchLabel[bMatchCount]);
+        sprintf(temp, "  b%da1:\n  mov ebx, [esp]\n  mov eax, [ebx]\n  cmp eax, 0\n  jne b%da0\n", bMatchLabel[bMatchCount], bMatchLabel[bMatchCount]);
         fputs(temp, fp);
         break;
       case '.':
-        fputs("  pop ecx\n  push ecx\n  push ecx\n  pop ecx\n  mov eax, 4\n  mov ebx, 1\n  mov edx, 1\n  int 0x80\n", fp);
+        fputs("  mov eax, 4\n  mov ebx, 1\n  mov ecx, [esp]\n  mov edx, 1\n  int 0x80\n", fp);
         break;
       case ',':
-        sprintf(temp, "  i%d:\n  pop ecx\n  push ecx\n  push ecx\n  pop ecx\n  mov eax, 3\n  mov ebx, 0\n  mov edx, 1\n  int 0x80\n  mov eax, 10\n  pop ecx\n  push ecx\n  mov ebx, [ecx]\n  cmp eax, ebx\n  je i%d\n", nextLabelCount, nextLabelCount);
+        sprintf(temp, "  i%d:\n  mov eax, 3\n  mov ebx, 0\n  mov ecx, [esp]\n  mov edx, 1\n  int 0x80\n  mov eax, 10\n  mov ecx, [esp]\n  mov ebx, [ecx]\n  cmp eax, ebx\n  je i%d\n", nextLabelCount, nextLabelCount);
         fputs(temp, fp);
         nextLabelCount++;
+        break;
+      default:
         break;
     }
     cinst = cinst->next;

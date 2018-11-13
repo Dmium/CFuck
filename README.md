@@ -25,6 +25,5 @@ Note: Written for Linux. May work on other OSes. Will almost certainly not work 
 
 # TODO
 
-1. Optimize increment and decrement operations
-2. Other optimizations
-3. Run a second parse to replace push pop with mov
+1. Other optimizations
+2. Run a second parse to replace push pop with mov
